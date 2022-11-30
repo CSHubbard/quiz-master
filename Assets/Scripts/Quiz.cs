@@ -28,13 +28,20 @@ public class Quiz : MonoBehaviour
   [SerializeField] TextMeshProUGUI scoreText;
   ScoreKeeper scoreKeeper;
 
+  [Header("Progress Bar")]
+  [SerializeField] Slider progressBar;
+
+  [SerializeField] public bool isComplete;
+
+  
 
   // Start is called before the first frame update
-  void Start()
+  void Awake()
   {
     timer = FindObjectOfType<Timer>();
     scoreKeeper = FindObjectOfType<ScoreKeeper>();
-    DisplayQuestion();
+    progressBar.maxValue = questions.Count;
+    progressBar.value = 0;
   }
 
   void Update()
@@ -42,6 +49,11 @@ public class Quiz : MonoBehaviour
     timerImage.fillAmount = timer.fillFraction;
     if (timer.loadNextQuestion)
     {
+      if (progressBar.value == progressBar.maxValue)
+      {
+        isComplete = true;
+        return;
+      }
       hasAnsweredEarly = false;
       GetNextQuestion();
       timer.loadNextQuestion = false;
@@ -75,6 +87,7 @@ public class Quiz : MonoBehaviour
       GetRandomQuestion();
       DisplayQuestion();
       scoreKeeper.IncrementQuestionsSeen();
+      progressBar.value++;
     }
   }
 
