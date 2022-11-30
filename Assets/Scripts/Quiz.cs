@@ -3,55 +3,118 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using System;
 
 public class Quiz : MonoBehaviour
 {
+  [Header("Questions")]
   [SerializeField] TextMeshProUGUI questionText;
-  [SerializeField] QuestionSO question;
+  [SerializeField] List<QuestionSO> questions;
+  QuestionSO currentQuestion;
+
+  [Header("Answers")]
   [SerializeField] GameObject[] answerButtons;
+  private int correctAnswerIndex;
+  private bool hasAnsweredEarly;
+
+  [Header("Buttons")]
   [SerializeField] Sprite defaultAnswerSprite;
   [SerializeField] Sprite correctAnswerSprite;
-  private int correctAnswerIndex;
+
+  [Header("Timer")]
+  [SerializeField] Image timerImage;
+  Timer timer;
+
+  [Header("Scoring")]
+  [SerializeField] TextMeshProUGUI scoreText;
+  ScoreKeeper scoreKeeper;
 
 
   // Start is called before the first frame update
   void Start()
   {
+    timer = FindObjectOfType<Timer>();
+    scoreKeeper = FindObjectOfType<ScoreKeeper>();
     DisplayQuestion();
+  }
+
+  void Update()
+  {
+    timerImage.fillAmount = timer.fillFraction;
+    if (timer.loadNextQuestion)
+    {
+      hasAnsweredEarly = false;
+      GetNextQuestion();
+      timer.loadNextQuestion = false;
+    }
+    else if (!hasAnsweredEarly && !timer.isAnsweringQuestion)
+    {
+      DisplayAnswer(-1);
+      SetButtonState(false);
+    }
   }
 
   private void DisplayQuestion()
   {
-    questionText.text = question.GetQuestion();
-
-    for (int i = 0; i < answerButtons.Length; i++)
+    if (currentQuestion != null)
     {
-      answerButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = question.GetAnswer(i);
+      questionText.text = currentQuestion.GetQuestion();
+
+      for (int i = 0; i < answerButtons.Length; i++)
+      {
+        answerButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = currentQuestion.GetAnswer(i);
+      }
     }
   }
 
   private void GetNextQuestion()
   {
-    DisplayQuestion();
-    SetDefaultButtonSprites();
-    SetButtonState(true);
+    if (questions.Count > 0)
+    {
+      SetButtonState(true);
+      SetDefaultButtonSprites();
+      GetRandomQuestion();
+      DisplayQuestion();
+      scoreKeeper.IncrementQuestionsSeen();
+    }
   }
 
+  private void GetRandomQuestion()
+  {
+    int index = Random.Range(0, questions.Count);
+    currentQuestion = questions[index];
+    if (questions.Contains(currentQuestion))
+    {
+      questions.Remove(currentQuestion);
+    }
+  }
+
+  // Hooked up to answer buttons in the UI
   public void OnAnswerSelected(int index)
   {
-    if (index == question.GetCorrectAnswerIndex())
-    {
-      questionText.text = "Correct!";
-      answerButtons[index].GetComponent<Image>().sprite = correctAnswerSprite;
-    }
-    else
-    {
-      correctAnswerIndex = question.GetCorrectAnswerIndex();
-      questionText.text = "Wrong. The correct answer was: \n" + question.GetAnswer(correctAnswerIndex);
-      answerButtons[correctAnswerIndex].GetComponent<Image>().sprite = correctAnswerSprite;
-    }
+    hasAnsweredEarly = true;
+    DisplayAnswer(index);
     SetButtonState(false);
+    timer.CancelTimer();
+    scoreText.text = $"Score: {scoreKeeper.CalculateScore()}%";
+  }
+
+  private void DisplayAnswer(int index)
+  {
+    if (currentQuestion != null)
+    {
+      if (index == currentQuestion.GetCorrectAnswerIndex())
+      {
+        scoreKeeper.IncrementCorrectAnswers();
+        questionText.text = "Correct!";
+        answerButtons[index].GetComponent<Image>().sprite = correctAnswerSprite;
+      }
+      else
+      {
+        correctAnswerIndex = currentQuestion.GetCorrectAnswerIndex();
+        questionText.text = "Wrong. The correct answer was: \n" + currentQuestion.GetAnswer(correctAnswerIndex);
+        answerButtons[correctAnswerIndex].GetComponent<Image>().sprite = correctAnswerSprite;
+      }
+    }
   }
 
   private void SetDefaultButtonSprites()
@@ -67,7 +130,6 @@ public class Quiz : MonoBehaviour
     for (int i = 0; i < answerButtons.Length; i++)
     {
       answerButtons[i].GetComponent<Button>().interactable = state;
-
     }
   }
 }

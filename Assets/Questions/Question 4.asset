@@ -12,3 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 053357c5c75adbf49baf7c2cb69e3ef5, type: 3}
   m_Name: Question 4
   m_EditorClassIdentifier: 
+  question: The Original Doom Had Such A Huge Impact On The FPS Genre, That For A
+    While All FPSs Were Known As...?
+  answers:
+  - Doom Sequels
+  - Doomers
+  - Doom Clones
+  - Doom Games
+  correctAnswerIndex: 2

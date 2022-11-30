@@ -12,3 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 053357c5c75adbf49baf7c2cb69e3ef5, type: 3}
   m_Name: Question 3
   m_EditorClassIdentifier: 
+  question: What Is The Software Company Associated With Doom?
+  answers:
+  - Bungie
+  - id Software
+  - Interplay
+  - Ubisoft
+  correctAnswerIndex: 1
